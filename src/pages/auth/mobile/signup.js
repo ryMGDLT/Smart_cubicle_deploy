@@ -1,14 +1,16 @@
 import React from "react";
 import { useAuth } from "../../../components/controller/authController";
 import { Link } from "react-router-dom";
+import { Input } from "../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
 import Swal from "sweetalert2";
 import InputMask from "react-input-mask";
 
 function Signup() {
-  const [username, setUsername] = React.useState("");
+  const [fullName, setFullName] = React.useState("");
+  const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [fullName, setFullName] = React.useState("");
   const [employeeId, setEmployeeId] = React.useState("");
   const [contactNumber, setContactNumber] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
@@ -37,7 +39,7 @@ function Signup() {
   // Handle Employee ID input
   const handleEmployeeIdChange = (e) => {
     const value = e.target.value;
-    setEmployeeId(value); 
+    setEmployeeId(value);
   };
 
   const handleSubmit = async (e) => {
@@ -90,7 +92,7 @@ function Signup() {
     }
 
     // Validate email
-    if (!isValidEmail(username)) {
+    if (!isValidEmail(email)) {
       Swal.fire({
         icon: "error",
         title: "Invalid Email",
@@ -138,7 +140,7 @@ function Signup() {
       confirmPassword: trimmedConfirmPassword,
       employeeId,
       contactNumber,
-      email: username,
+      email,
       role: "User",
     };
 
@@ -176,21 +178,23 @@ function Signup() {
           />
         </div>
         <form className="mt-2" onSubmit={handleSubmit}>
-          {/* Full name and Employee ID row */}
+          {/* Full Name and Employee ID row */}
           <div className="mb-4 flex flex-col md:flex-row md:space-x-4">
             <div className="w-full md:w-1/2 mb-4 md:mb-0">
-              <label className="block text-white text-sm mb-2">Full Name</label>
-              <input
+              <label className="block font-bold text-Icpetgreen text-sm mb-2">
+                Full Name
+              </label>
+              <Input
                 type="text"
                 placeholder="Firstname Lastname"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none bg-white"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
               />
             </div>
             <div className="w-full md:w-1/2">
-              <label className="block text-white text-sm mb-2">
+              <label className="block font-bold text-Icpetgreen text-sm mb-2">
                 Employee ID
               </label>
               <InputMask
@@ -202,10 +206,10 @@ function Signup() {
                 alwaysShowMask={true}
               >
                 {(inputProps) => (
-                  <input
+                  <Input
                     {...inputProps}
                     type="text"
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none bg-white"
                     required
                   />
                 )}
@@ -213,29 +217,29 @@ function Signup() {
             </div>
           </div>
 
-          {/* Username and Contact Number row */}
+          {/* Email and Contact Number row */}
           <div className="mb-4 flex flex-col md:flex-row md:space-x-4">
             <div className="w-full md:w-1/2 mb-4 md:mb-0">
-              <label className="block text-white text-sm mb-2">
-                Email/Username
+              <label className="block font-bold text-Icpetgreen text-sm mb-2">
+                Email
               </label>
-              <input
+              <Input
                 type="text"
                 placeholder="email@email.com"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none bg-white"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="w-full md:w-1/2">
-              <label className="block text-white text-sm mb-2">
+              <label className="block font-bold text-Icpetgreen text-sm mb-2">
                 Contact Number
               </label>
-              <input
+              <Input
                 type="text"
                 placeholder="+63-9xx-xxx-xxxx"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none bg-white"
                 value={contactNumber}
                 onChange={(e) => {
                   let value = e.target.value;
@@ -296,19 +300,21 @@ function Signup() {
           {/* Password and Confirm Password row */}
           <div className="mb-4 flex flex-col md:flex-row md:space-x-4">
             <div className="w-full md:w-1/2 mb-4 md:mb-0">
-              <label className="block text-white text-sm mb-2">Password</label>
               <div className="relative">
-                <input
+                <label className="block font-bold text-Icpetgreen text-sm mb-2">
+                  Password
+                </label>
+                <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none bg-white"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-sm text-Icpetgreen hover:underline"
+                  className="absolute right-2 top-10 text-sm text-Icpetgreen hover:underline"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -316,21 +322,21 @@ function Signup() {
               </div>
             </div>
             <div className="w-full md:w-1/2">
-              <label className="block text-white text-sm mb-2">
-                Confirm Password
-              </label>
               <div className="relative">
-                <input
+                <label className="block font-bold text-Icpetgreen text-sm mb-2">
+                  Confirm Password
+                </label>
+                <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="Confirm your password"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-Icpetgreen focus:outline-none bg-white"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                 />
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-sm text-Icpetgreen hover:underline"
+                  className="absolute right-2 top-10 text-sm text-Icpetgreen hover:underline"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -340,22 +346,24 @@ function Signup() {
           </div>
 
           <div className="text-center mt-2">
-            <Link
-              to="/login"
-              className="text-Icpetgreen text-lg py-2 rounded-lg hover:underline transition duration-300"
+            <Button
+              type="submit"
+              variant="link"
+              className="w-1/2 mx-auto block mt-4"
             >
-              Log In
-            </Link>
+              <Link to="/login">Log In</Link>
+            </Button>
           </div>
-        </form>
 
-        <button
-          type="submit"
-          className="w-1/2 md:w-1/3 mx-auto block mt-4 bg-Icpetgreen text-white py-2 rounded-lg hover:bg-gray-800 transition duration-300"
-          disabled={loading}
-        >
-          {loading ? "Signing Up..." : "Sign Up"}
-        </button>
+          <Button
+            type="submit"
+            variant="default"
+            className="w-1/4 mx-auto block mt-4"
+            disabled={loading}
+          >
+            {loading ? "Signing Up..." : "Sign Up"}
+          </Button>
+        </form>
       </div>
     </div>
   );
