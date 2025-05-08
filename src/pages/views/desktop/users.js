@@ -22,7 +22,7 @@ export default function Users() {
   const [activeTab, setActiveTab] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const itemsPerPage = 11; 
+  const itemsPerPage = 11;
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [usersData, setUsersData] = useState([]);
@@ -271,10 +271,6 @@ export default function Users() {
 
   const shouldShowPagination = filteredData.length > itemsPerPage;
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <Card className="flex flex-col h-full bg-white shadow-md p-1 rounded-lg overflow-hidden">
       <div className="flex flex-row justify-between items-center shrink-0">
@@ -345,18 +341,23 @@ export default function Users() {
       <div className="mt-3 flex flex-col flex-1 rounded-lg border border-gray-200">
         {/* Table container with fixed height for 12 rows + header */}
         <div className="flex-1" style={{ height: "585px" /* 45px * 13 */ }}>
-          <DataTable
-            columns={columns}
-            data={currentItems}
-            pageCount={totalPages}
-            currentPage={currentPage}
-            onPageChange={handlePageChange}
-            className="h-full"
-          />
+          {loading ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={currentItems}
+              pageCount={totalPages}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              className="h-full"
+            />
+          )}
         </div>
         {shouldShowPagination && (
           <div className="border-t border-gray-200 bg-white p-2 pb-4 shrink-0">
-            {/* Added pb-4 for 16px padding-bottom */}
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -405,4 +406,4 @@ export default function Users() {
       </div>
     </Card>
   );
-} 
+}

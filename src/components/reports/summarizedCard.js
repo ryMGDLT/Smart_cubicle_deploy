@@ -1,5 +1,6 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useDropdown } from "../utils/useDropdown";
+import { DateTime } from "luxon"; // Import Luxon
 
 export default function SummarizedReport({
   selectedPeriod,
@@ -12,8 +13,72 @@ export default function SummarizedReport({
   showMetricsCards = true,
   showHeader = true,
 }) {
-
   const [showDropdown, setShowDropdown, dropdownRef] = useDropdown(false);
+  const [peakHours, setPeakHours] = useState({
+    Daily: "N/A",
+    Weekly: "N/A",
+    Monthly: "N/A",
+  });
+
+  // Function to subtract 8 hours from a time string
+  const adjustTime = (timeStr) => {
+    if (timeStr === "N/A" || !timeStr) return "N/A";
+    try {
+      // Parse the time string (e.g., "5:00 PM") in Asia/Manila timezone
+      const dt = DateTime.fromFormat(timeStr, "h:mm a", { zone: "Asia/Manila" });
+      if (!dt.isValid) {
+        console.error(`Invalid time format: ${timeStr}`);
+        return "N/A";
+      }
+      // Subtract 8 hours and format back to "h:mm a"
+      const adjusted = dt.minus({ hours: 8 });
+      console.log(`Original time: ${timeStr}, Adjusted time: ${adjusted.toFormat("h:mm a")}`);
+      return adjusted.toFormat("h:mm a");
+    } catch (error) {
+      console.error(`Error adjusting time ${timeStr}:`, error);
+      return "N/A";
+    }
+  };
+
+  // Fetch peak hours when the component mounts
+  useEffect(() => {
+    const fetchPeakHours = async () => {
+      try {
+        const fetchUrl = `${process.env.REACT_APP_BACKEND_URL}/api/calendar-events/peak-hours?_=${Date.now()}`;
+        console.log(`Fetching from ${fetchUrl}`);
+        const response = await fetch(fetchUrl, { cache: "no-store" });
+        console.log("Response status:", response.status);
+        console.log("Content-Type:", response.headers.get("content-type"));
+        const text = await response.text();
+        console.log("Raw response:", text);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Received non-JSON response");
+        }
+
+        const data = JSON.parse(text);
+        // Adjust times by subtracting 8 hours
+        const adjustedData = {
+          Daily: adjustTime(data.Daily),
+          Weekly: adjustTime(data.Weekly),
+          Monthly: adjustTime(data.Monthly),
+        };
+        console.log("Parsed data:", data);
+        console.log("Adjusted peakHours:", adjustedData);
+        setPeakHours(adjustedData);
+      } catch (error) {
+        console.error("Error fetching peak hours:", error.message);
+        setPeakHours({ Daily: "N/A", Weekly: "N/A", Monthly: "N/A" });
+      }
+    };
+
+    fetchPeakHours();
+  }, []);
 
   return (
     <div>
@@ -48,14 +113,12 @@ export default function SummarizedReport({
                 </div>
               )}
 
-           
               {showMetricsDropdown && (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setShowDropdown(!showDropdown)}
                     className="p-2 hover:bg-gray-100 rounded-full"
                   >
-
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5 text-gray-500"
@@ -66,7 +129,6 @@ export default function SummarizedReport({
                     </svg>
                   </button>
 
-                  {/* Dropdown Content */}
                   {showDropdown && (
                     <div className="absolute right-0 mt-2 w-48 bg-teal-600 rounded-md shadow-lg py-1 z-10">
                       {allMetrics.map((item, index) => (
@@ -117,20 +179,14 @@ export default function SummarizedReport({
           </div>
         )}
 
-    
         {showMetricsCards && (
           <div className="flex overflow-x-auto gap-4 pb-4 justify-center">
             {[
               {
                 id: "Usage Peak Hour",
-
                 title: "Usage Peak Hours",
-                values: {
-                  Daily: "12:00",
-                  Weekly: "2:00",
-                  Monthly: "3:00",
-                },
-                unit: "PM",
+                values: peakHours,
+                unit: "",
               },
               {
                 id: "Total Cleaning Time",

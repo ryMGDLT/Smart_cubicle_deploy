@@ -25,6 +25,8 @@ import LoginMobile from "./pages/auth/mobile/login";
 import SignupMobile from "./pages/auth/mobile/signup";
 import ResetPasswordDesktop from "./pages/auth/desktop/resetPassword"; 
 import ResetPasswordMobile from "./pages/auth/mobile/resetPassword";   
+import CleanLogin from "./pages/auth/cleanLogin"; // Added import
+import QRCodeGenerator from "./components/qrGenerator"; // Added import
 
 // View Pages
 import DashboardDesktop from "./pages/views/desktop/dashboard";
@@ -76,7 +78,6 @@ function App() {
                 }
               />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
-              {/* Added Reset Password Route */}
               <Route
                 path="/reset-password"
                 element={
@@ -85,6 +86,24 @@ function App() {
                       desktopComponent={ResetPasswordDesktop}
                       mobileComponent={ResetPasswordMobile}
                     />
+                  </PublicRoute>
+                }
+              />
+              {/* Added Clean Login Route */}
+              <Route
+                path="/clean-login"
+                element={
+                  <PublicRoute>
+                    <CleanLogin />
+                  </PublicRoute>
+                }
+              />
+              {/* Added QR Code Route */}
+              <Route
+                path="/qr-code"
+                element={
+                  <PublicRoute>
+                    <QRCodeGenerator />
                   </PublicRoute>
                 }
               />

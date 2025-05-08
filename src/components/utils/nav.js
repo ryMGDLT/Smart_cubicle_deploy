@@ -237,6 +237,7 @@ export default function Nav() {
               setIsDropdownVisible={setIsDropdownVisible}
               dropdownRef={dropdownRef}
               userRole={user?.role}
+              userId={user?.id} // Added userId prop
               token={user?.token}
               notifications={notifications}
               setNotifications={setNotifications}

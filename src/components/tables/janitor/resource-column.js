@@ -6,12 +6,12 @@ import { UserRoundIcon } from "lucide-react";
 
 const NoteCell = ({ note }) => {
   const getTextColorClass = (note) => {
-    const lowerNote = note.toLowerCase();
-    if (lowerNote.includes("normal")) {
+    const lowerNote = (note || "").toLowerCase();
+    if (lowerNote.includes("excellent")) {
       return "text-green-600";
-    } else if (lowerNote.includes("higher")) {
+    } else if (lowerNote.includes("normal")) {
       return "text-amber-600";
-    } else if (lowerNote.includes("excessive")) {
+    } else if (lowerNote.includes("abusive")) {
       return "text-red-600";
     }
     return "text-gray-600";
@@ -20,12 +20,11 @@ const NoteCell = ({ note }) => {
   return (
     <div className="flex items-center justify-center">
       <span className={`px-2 font-medium text-sm ${getTextColorClass(note)}`}>
-        {note}
+        {note || "N/A"}
       </span>
     </div>
   );
-};
-
+}; 
 
 const RestockedCell = ({ restocked }) => {
   return (
@@ -41,18 +40,17 @@ const RestockedCell = ({ restocked }) => {
   );
 };
 
-export const resourceUsageColumns = [
+export const resourceUsageColumns = ({ fetchJanitorsDebounced }) => [
   {
-    accessorKey: "resourceUsage.image",
+    accessorKey: "basicDetails.image",
     header: () => <div className="text-center">Profile Pic</div>,
     cell: ({ row }) => {
+      const image = row.original.basicDetails?.image || DEFAULT_PROFILE_IMAGE;
+      const name = row.original.basicDetails?.name || "N/A";
       return (
         <div className="flex items-center justify-center px-2">
           <Avatar>
-            <AvatarImage
-              src={row.original.resourceUsage.image || DEFAULT_PROFILE_IMAGE}
-              alt={row.original.resourceUsage.name}
-            />
+            <AvatarImage src={image} alt={name} />
             <AvatarFallback>
               <UserRoundIcon className="w-4 h-4" />
             </AvatarFallback>
@@ -63,33 +61,43 @@ export const resourceUsageColumns = [
     size: 0.1,
   },
   {
-    accessorKey: "resourceUsage.name",
+    accessorKey: "basicDetails.name",
     header: () => <div className="text-center">Name</div>,
     cell: ({ row }) => (
       <div className="truncate px-2">
         <p className="text-sm font-medium truncate text-center">
-          {row.original.resourceUsage.name}
+          {row.original.basicDetails?.name || "N/A"}
         </p>
       </div>
     ),
-    size: 0.2,
+    size: 0.15,
   },
   {
     accessorKey: "resourceUsage.resource",
     header: () => <div className="text-center">Resource</div>,
     cell: ({ row }) => (
       <div className="truncate text-center">
-        {row.original.resourceUsage.resource}
+        {row.original.resourceUsage?.resource || "N/A"}
       </div>
     ),
-    size: 0.15, 
+    size: 0.15,
   },
   {
     accessorKey: "resourceUsage.amountUsed",
     header: () => <div className="text-center">Amount Used</div>,
     cell: ({ row }) => (
       <div className="truncate text-center">
-        {row.original.resourceUsage.amountUsed}
+        {row.original.resourceUsage?.amountUsed || "0 ml"}
+      </div>
+    ),
+    size: 0.15,
+  },
+  {
+    accessorKey: "resourceUsage.recommended",
+    header: () => <div className="text-center">Recommended</div>,
+    cell: ({ row }) => (
+      <div className="truncate text-center">
+        {row.original.resourceUsage?.recommended || "0 ml"}
       </div>
     ),
     size: 0.15,
@@ -99,7 +107,7 @@ export const resourceUsageColumns = [
     header: () => <div className="text-center">Remaining</div>,
     cell: ({ row }) => (
       <div className="truncate text-center">
-        {row.original.resourceUsage.remaining}
+        {row.original.resourceUsage?.remaining || "0 ml"}
       </div>
     ),
     size: 0.15,
@@ -107,13 +115,17 @@ export const resourceUsageColumns = [
   {
     accessorKey: "resourceUsage.restocked",
     header: () => <div className="text-center">Restocked</div>,
-    cell: ({ row }) => <RestockedCell restocked={row.original.resourceUsage.restocked} />,
-    size: 0.1, 
+    cell: ({ row }) => (
+      <RestockedCell restocked={row.original.resourceUsage?.restocked || false} />
+    ),
+    size: 0.1,
   },
   {
     accessorKey: "resourceUsage.note",
     header: () => <div className="text-center">Note</div>,
-    cell: ({ row }) => <NoteCell note={row.original.resourceUsage.note} />,
-    size: 0.2, 
+    cell: ({ row }) => (
+      <NoteCell note={row.original.resourceUsage?.note || "N/A"} />
+    ),
+    size: 0.15,
   },
 ];

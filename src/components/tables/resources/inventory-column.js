@@ -1,25 +1,26 @@
+// inventory-column.js
 "use client";
 
-const StatusCell = ({status}) => {
-    const getStatusColor = (status) => {
-        const lowerStatus = status.toLowerCase();
-        if (lowerStatus.includes('sufficient')) {
-            return 'text-green-600';
-        } else if (lowerStatus.includes('low') || lowerStatus.includes('stock')) {
-            return 'text-amber-600';
-        } else if (lowerStatus.includes('out')) {
-            return 'text-red-600';
-        }
-        return 'text-gray-600';
-    };
+const StatusCell = ({ status }) => {
+  const getStatusColor = (status) => {
+    const lowerStatus = status.toLowerCase();
+    if (lowerStatus.includes('sufficient')) {
+      return 'text-green-600';
+    } else if (lowerStatus.includes('almost')) {
+      return 'text-amber-600';
+    } else if (lowerStatus.includes('empty')) {
+      return 'text-red-600';
+    }
+    return 'text-gray-600';
+  };
 
-    return (
-        <div className="flex items-center justify-center">
-            <span className={`px-2 font-medium text-sm ${getStatusColor(status)}`}>
-                {status}
-            </span>
-        </div>
-    );
+  return (
+    <div className="flex items-center justify-center">
+      <span className={`px-2 font-medium text-sm ${getStatusColor(status)}`}>
+        {status}
+      </span>
+    </div>
+  );
 };
 
 export const inventoryColumns = [
@@ -35,7 +36,7 @@ export const inventoryColumns = [
     accessorKey: "currentStock",
     header: () => <div className="text-center border-gray-200 min-w-[80px]">Current Stock</div>,
     cell: ({ row }) => (
-      <div className="truncate text-center border-gray-200 min-w-[80px]">{row.original.currentStock}</div>
+      <div className="truncate text-center border-gray-200 min-w-[80px]">{`${row.original.currentStock} ml`}</div>
     ),
     size: 0.1,
   },
@@ -43,7 +44,7 @@ export const inventoryColumns = [
     accessorKey: "restockThreshold",
     header: () => <div className="text-center border-gray-200 min-w-[100px]">Restock Threshold</div>,
     cell: ({ row }) => (
-      <div className="truncate text-center border-gray-200 min-w-[100px]">{row.original.restockThreshold}</div>
+      <div className="truncate text-center border-gray-200 min-w-[100px]">{`${row.original.restockThreshold} ml`}</div>
     ),
     size: 0.15,
   },
@@ -59,7 +60,7 @@ export const inventoryColumns = [
     accessorKey: "recommendedRestock",
     header: () => <div className="text-center border-gray-200 min-w-[90px]">Restock</div>,
     cell: ({ row }) => (
-      <div className="truncate text-center border-gray-200 min-w-[90px]">{row.original.recommendedRestock}</div>
+      <div className="truncate text-center border-gray-200 min-w-[90px]">{`${row.original.recommendedRestock} ml`}</div>
     ),
     size: 0.1,
   },

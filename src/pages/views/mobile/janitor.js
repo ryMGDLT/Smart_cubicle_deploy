@@ -342,24 +342,7 @@ export default function Janitors() {
                     {data.status}
                   </span>
                 </div>
-                <div className="col-span-2 flex gap-4">
-                  <a
-                    href={data.beforePicture}
-                    className="text-blue-600 hover:underline text-sm"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Before Picture
-                  </a>
-                  <a
-                    href={data.afterPicture}
-                    className="text-blue-600 hover:underline text-sm"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    After Picture
-                  </a>
-                </div>
+               
               </div>
             </div>
           </div>

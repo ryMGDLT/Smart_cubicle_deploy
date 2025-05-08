@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Added useEffect
 import { Card } from "../../../components/ui/card";
 import SummarizedReport from "../../../components/reports/summarizedCard";
 import {
@@ -16,6 +16,71 @@ import {
 import CustomCalendar from "../../../components/calendar/asideCalendar";
 import MobileCalendar from "../../../components/calendar/mobileCalendar";
 import Reminders from "../../../components/reminder/reminder";
+import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/avatar"; // Added Avatar components
+import { DEFAULT_PROFILE_IMAGE } from "../../../data/placeholderData"; // Added placeholder image
+
+// Define backend URL
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+
+// Normalize time function (copied from first code)
+const normalizeTime = (time) => {
+  if (!time) return null;
+  const timeStr = String(time).trim();
+  const timeFormats = [
+    /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i, // e.g., "9:30 AM"
+    /^(\d{1,2}):(\d{2})$/, // e.g., "14:30"
+    /^(\d{1,2})\s*(AM|PM)$/i, // e.g., "9 AM"
+  ];
+
+  for (const regex of timeFormats) {
+    const match = timeStr.match(regex);
+    if (match) {
+      let hours = parseInt(match[1], 10);
+      const minutes = match[2] ? parseInt(match[2], 10) : 0;
+      const period = match[3] ? match[3].toUpperCase() : null;
+
+      if (period) {
+        if (period === "PM" && hours < 12) hours += 12;
+        if (period === "AM" && hours === 12) hours = 0;
+      }
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+    }
+  }
+  return null;
+};
+
+// Format cleaning hour to AM/PM (copied from first code)
+const formatCleaningHour = (time) => {
+  if (!time || time === "N/A") return "N/A";
+  try {
+    const [hours, minutes] = time.split(":").map(Number);
+    const period = hours >= 12 ? "PM" : "AM";
+    const formattedHour = hours % 12 || 12;
+    return `${formattedHour}:${minutes.toString().padStart(2, "0")} ${period}`;
+  } catch (error) {
+    console.error("Error formatting cleaning hour:", time, error);
+    return "N/A";
+  }
+};
+
+// Get status color (copied from first code)
+const getStatusColor = (status) => {
+  switch (status.toLowerCase()) {
+    case "done":
+    case "on time":
+    case "early":
+      return "text-green-500";
+    case "overdue":
+    case "late":
+      return "text-red-500";
+    case "pending":
+      return "text-yellow-500";
+    default:
+      return "text-gray-500";
+  }
+};
 
 const Modal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -27,7 +92,7 @@ const Modal = ({ isOpen, onClose, children }) => {
           onClick={onClose}
           className="absolute top-2 right-5 text-gray-500 hover:text-gray-700 text-3xl"
         >
-          &times;
+          ×
         </button>
         {/* Modal Content */}
         <div className="overflow-hidden">{children}</div>
@@ -55,6 +120,9 @@ export default function Dashboard() {
     peakHours: true,
     resourceRestocking: true,
   });
+  const [janitorSchedules, setJanitorSchedules] = useState([]); // Added state for schedules
+  const [loading, setLoading] = useState(true); // Added loading state
+  const [error, setError] = useState(null); // Added error state
 
   const toggleMetricWrapper = (item) => {
     toggleMetric(setSelectedMetrics, item);
@@ -68,6 +136,89 @@ export default function Dashboard() {
   const closeModal = () => {
     setIsModalOpen(false);
   };
+
+  // Fetch janitor data (copied from first code)
+  useEffect(() => {
+    const fetchJanitors = async () => {
+      try {
+        console.log(`Fetching janitors from ${backendUrl}/janitors`);
+        const response = await fetch(`${backendUrl}/janitors?ts=${Date.now()}`);
+        if (!response.ok) throw new Error(`Failed to fetch janitors: ${response.statusText}`);
+        const data = await response.json();
+        console.log("Janitor API Response:", data);
+
+        // Map all schedule entries
+        const allSchedules = data.flatMap((janitor) =>
+          (janitor.schedule || []).map((entry) => ({
+            janitorId: janitor._id,
+            name: janitor.basicDetails?.name || "N/A",
+            image: janitor.basicDetails?.image || DEFAULT_PROFILE_IMAGE,
+            cleaningHour: entry.cleaningHour || "N/A",
+            status: entry.status || "Pending",
+            date: entry.date || null,
+            shift: entry.shift || null,
+          }))
+        );
+
+        // Sort schedules
+        const sortedSchedules = allSchedules.sort((a, b) => {
+          const parseDate = (dateStr) => {
+            if (!dateStr) return new Date(0);
+            let date;
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+              const [month, day, year] = dateStr.split("/").map(Number);
+              date = new Date(year, month - 1, day);
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+              date = new Date(dateStr);
+            } else {
+              return new Date(0);
+            }
+            return date && !isNaN(date.getTime()) ? date : new Date(0);
+          };
+
+          const dateA = parseDate(a.date);
+          const dateB = parseDate(b.date);
+          const dateDiff = dateB.getTime() - dateA.getTime();
+          if (dateDiff !== 0) {
+            return dateDiff;
+          }
+
+          const parseShift = (shift) => {
+            if (!shift) return 0;
+            const shiftPriority = { evening: 3, afternoon: 2, morning: 1 };
+            return shiftPriority[shift.toLowerCase()] || 0;
+          };
+
+          const shiftA = parseShift(a.shift);
+          const shiftB = parseShift(b.shift);
+          if (shiftA !== shiftB) {
+            return shiftB - shiftA;
+          }
+
+          const parseCleaningHour = (time) => {
+            const normalized = normalizeTime(time);
+            if (!normalized) return 0;
+            const [hours, minutes] = normalized.split(":").map(Number);
+            return hours * 60 + minutes;
+          };
+
+          const timeA = parseCleaningHour(a.cleaningHour);
+          const timeB = parseCleaningHour(b.cleaningHour);
+          return timeB - timeA;
+        });
+
+        // Take only the top 5 latest schedules
+        setJanitorSchedules(sortedSchedules.slice(0, 5));
+        setError(null);
+      } catch (error) {
+        console.error("Error fetching janitor data:", error.message);
+        setError("Failed to load janitor schedules. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJanitors();
+  }, []);
 
   return (
     <div className="flex flex-col mt-[-10px]">
@@ -250,9 +401,7 @@ export default function Dashboard() {
                   />
                 </div>
               </div>
-
               <hr className="w-full border-t border-gray-200 mt-4 mb-5 shadow-lg" />
-
               <div className="flex flex-col gap-4 w-full">
                 <h2 className="text-xl font-bold mb-4">
                   Janitor Schedule (Today)
@@ -268,44 +417,54 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {[
-                        { time: "8:00 AM", status: "Done", color: "green" },
-                        { time: "11:00 AM", status: "Overdue", color: "red" },
-                        { time: "3:00 PM", status: "Pending", color: "yellow" },
-                        { time: "7:00 PM", status: "Pending", color: "yellow" },
-                      ].map((shift, i) => (
-                        <tr key={i} className="border-b border-gray-100">
-                          <td className="py-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-gray-200">
-                                <img
-                                  src="/images/bongbong.jpg"
-                                  alt="Jane Doe"
-                                  className="w-8 h-8 rounded-full"
-                                />
-                              </div>
-                              <span>Jane Doe</span>
-                            </div>
+                      {loading && (
+                        <tr>
+                          <td colSpan={4} className="py-3 text-center">
+                            Loading schedules...
                           </td>
-                          <td className="py-3">{shift.time}</td>
-                          <td className="py-3">
-                            <span
-                              className={
-                                shift.color === "green"
-                                  ? "text-green-500"
-                                  : shift.color === "red"
-                                  ? "text-red-500"
-                                  : shift.color === "yellow"
-                                  ? "text-yellow-500"
-                                  : ""
-                              }
-                            >
-                              {shift.status}
-                            </span>
-                          </td>
-                          <td className="py-3 text-right">⋮</td>
                         </tr>
-                      ))}
+                      )}
+                      {error && (
+                        <tr>
+                          <td colSpan={4} className="py-3 text-center text-red-500">
+                            {error}
+                          </td>
+                        </tr>
+                      )}
+                      {!loading && !error && janitorSchedules.length > 0 ? (
+                        janitorSchedules.map((shift, i) => (
+                          <tr
+                            key={`${shift.janitorId}-${shift.cleaningHour}-${i}`}
+                            className="border-b border-gray-100"
+                          >
+                            <td className="py-3">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-8 h-8">
+                                  <AvatarImage src={shift.image} alt={shift.name} />
+                                  <AvatarFallback>{shift.name[0] || "N/A"}</AvatarFallback>
+                                </Avatar>
+                                <span>{shift.name}</span>
+                              </div>
+                            </td>
+                            <td className="py-3">{formatCleaningHour(shift.cleaningHour)}</td>
+                            <td className="py-3">
+                              <span className={getStatusColor(shift.status)}>
+                                {shift.status}
+                              </span>
+                            </td>
+                            <td className="py-3 text-right">⋮</td>
+                          </tr>
+                        ))
+                      ) : (
+                        !loading &&
+                        !error && (
+                          <tr>
+                            <td colSpan={4} className="py-3 text-center">
+                              No schedules available.
+                            </td>
+                          </tr>
+                        )
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -314,7 +473,6 @@ export default function Dashboard() {
           )}
         </div>
       </Card>
-
       {/* Modal */}
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <h2 className="text-2xl font-bold mb-4 mt-4">Event Calendar</h2>

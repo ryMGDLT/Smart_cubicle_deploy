@@ -1,83 +1,62 @@
-"use client";
+// src/components/tables/usage-monitor/inventory-columns.js
+import { createColumnHelper } from '@tanstack/react-table';
+
+const columnHelper = createColumnHelper();
 
 export const inventoryColumns = [
-  {
-    accessorKey: "timeStamp",
-    header: "Time Stamp",
-    cell: ({ row }) => (
-      <div className="truncate text-gray-700">{row.getValue("timeStamp")}</div>
-    ),
+  columnHelper.accessor('timeStamp', {
+    header: 'Time Stamp',
     size: 0.2,
-  },
-  {
-    accessorKey: "capacity",
-    header: "Capacity",
-    cell: ({ row }) => {
-      const capacity = row.getValue("capacity");
+    cell: ({ getValue }) => (
+      <div className="text-gray-900 font-medium">{getValue()}</div>
+    ),
+  }),
+  columnHelper.accessor('capacity', {
+    header: 'Occupancy',
+    size: 0.2,
+    cell: ({ getValue }) => {
+      const { value, status, color } = getValue();
       return (
-        <div className="truncate">
-          <div className={capacity.color}>
-            {capacity.value}
-            <div className="text-xs truncate">{capacity.status}</div>
-          </div>
+        <div className="flex flex-col items-start">
+          <span className="font-medium">{value}</span>
+          <span className={`text-xs ${color}`}>{status}</span>
         </div>
       );
     },
-    size: 0.15,
-  },
-  {
-    accessorKey: "waterLevel",
-    header: "Water Level",
-    cell: ({ row }) => {
-      const waterLevel = row.getValue("waterLevel");
+  }),
+  columnHelper.accessor('odor', {
+    header: 'Odor',
+    size: 0.2,
+    cell: ({ getValue }) => {
+      const { value, status, color } = getValue();
       return (
-        <div className="truncate">
-          <div className={waterLevel.color}>
-            {waterLevel.value}
-            <div className="text-xs truncate">{waterLevel.status}</div>
-          </div>
+        <div className="flex flex-col items-start">
+          <span className="font-medium">{value}</span>
+          <span className={`text-xs ${color}`}>{status}</span>
         </div>
       );
     },
-    size: 0.15,
-  },
-  {
-    accessorKey: "odor",
-    header: "Odor",
-    cell: ({ row }) => {
-      const odor = row.getValue("odor");
+  }),
+  columnHelper.accessor('temperature', {
+    header: 'Temperature (°F)',
+    size: 0.2,
+    cell: ({ getValue }) => {
+      const { value, status, color } = getValue();
       return (
-        <div className="truncate">
-          <div className={odor.color}>{odor.value}</div>
+        <div className="flex flex-col items-start">
+          <span className="font-medium">{value}</span>
+          <span className={`text-xs ${color}`}>{status}</span>
         </div>
       );
     },
-    size: 0.1,
-  },
-  {
-    accessorKey: "temperature",
-    header: "Temperature",
-    cell: ({ row }) => {
-      const temperature = row.getValue("temperature");
-      return (
-        <div className="truncate">
-          <div className={temperature.color}>
-            {temperature.value}
-            <div className="text-xs truncate">{temperature.status}</div>
-          </div>
-        </div>
-      );
-    },
-    size: 0.15,
-  },
-  {
-    accessorKey: "actionRequired",
-    header: "Action Required", 
-    cell: ({ row }) => (
-      <div className="truncate text-gray-700">
-        {row.getValue("actionRequired")}
+  }),
+  columnHelper.accessor('actionRequired', {
+    header: 'Action Required',
+    size: 0.2,
+    cell: ({ getValue }) => (
+      <div className={`font-medium ${getValue() === 'Inspect' || getValue() === 'Clean Restroom' ? 'text-red-600' : 'text-gray-900'}`}>
+        {getValue()}
       </div>
     ),
-    size: 0.25,
-  },
+  }),
 ];

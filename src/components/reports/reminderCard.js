@@ -1,24 +1,16 @@
 import React from "react";
 
 function ReminderCard({ date, items }) {
- 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Excessive Usage":
-        return "text-red-500";
-      case "Higher than Average":
-        return "text-amber-500";
-      case "Almost Empty":
-        return "text-blue-500";
-      case "Low Stock":
-        return "text-yellow-500";
-      case "Needs Replacement":
-        return "text-orange-500";
-      case "Empty":
-        return "text-purple-500";
-      default:
-        return "text-gray-500";
+  const getNoteColor = (note) => {
+    const lowerNote = (note || "").toLowerCase();
+    if (lowerNote.includes("excellent")) {
+      return "text-green-600";
+    } else if (lowerNote.includes("normal")) {
+      return "text-amber-600";
+    } else if (lowerNote.includes("abusive")) {
+      return "text-red-600";
     }
+    return "text-gray-600";
   };
 
   return (
@@ -34,13 +26,13 @@ function ReminderCard({ date, items }) {
           >
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-medium text-gray-900">{item.name}</p>
+                <p className="font-medium text-gray-900">{item.janitorName}</p>
                 <p className="text-sm text-gray-500">{item.resource}</p>
               </div>
               <span
-                className={`text-sm font-medium ${getStatusColor(item.status)}`}
+                className={`text-sm font-medium ${getNoteColor(item.note)}`}
               >
-                {item.status}
+                {item.note || "N/A"}
               </span>
             </div>
           </div>
